@@ -14,5 +14,8 @@ pytools = {editable = true,path = "."}
 [requires]
 python_version = "3.7"
 
+[scripts]
+tests = "python -m tests"
+
 [pipenv]
 allow_prereleases = true

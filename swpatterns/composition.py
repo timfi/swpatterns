@@ -1,6 +1,7 @@
 from operator import attrgetter
 from typing import Union, Tuple, Any, Dict
 
+from .interface import InterfaceMeta, isimplementation
 
 __all__ = ("Compose",)
 
@@ -9,6 +10,7 @@ def Compose(
     type_: type,
     *fields: Union[str, Tuple[str, str]],
     name: str = None,
+    build: bool = True,
     args: Tuple = tuple(),
     kwargs: Dict[str, Any] = dict(),
 ) -> type:
@@ -17,6 +19,7 @@ def Compose(
     :param type_: the type to composee
     :param *fields: the fields to forward
     :param name: the name to give the composee, defaults to f"_{type_.__name__.lower()}"
+    :param build: enable the automatic generation of a composee instance, doesn nothing when an interface is supplied
     :param args: the positional arguments to call the constructor of type_ with, defaults to tuple()
     :param kwargs: the keyword arguments to call the constructor of type_ with, defaults to dict()
     :return: the inheritable type
@@ -33,7 +36,18 @@ def Compose(
                 setattr(cls, dest, _build_field(name_, origin))
 
         def __init__(self, *args_, **kwargs_):
-            obj = kwargs_.pop(name_, type_(*args, **kwargs))
+            obj = kwargs_.pop(name_, None)
+            if not obj:
+                if build and not isinstance(type_, InterfaceMeta):
+                    obj = type_(*args, **kwargs)
+                else:
+                    raise ValueError(
+                        f"Need to provide a instance of type {type_} under kwarg {name_}."
+                    )
+            elif isinstance(type_, InterfaceMeta) and not isimplementation(
+                type(obj), type_
+            ):
+                raise TypeError(f"Passed instance doesn't implement {type_}")
             if any(not hasattr(obj, attr) for attr, _ in fields_):
                 raise TypeError(
                     "Can't initialise class due to missing fields required by composition "
