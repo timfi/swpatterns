@@ -1,3 +1,35 @@
+"""
+composition.py
+==============
+
+This is a simple implementation of composition with attribute
+forwarding, which 'abuses' python's inheritance syntax to make 
+usage a bit more intuitive. More complex things are possible with
+than demonstrated with the example below. Even so it is a nice
+starting of point on getting used to the syntax and tooling.
+
+Simple example:
+---------------
+class A:
+    test = "123"
+
+
+class B:
+    test = "456"
+
+
+class C(
+    Compose(A, ("test", "testa")),
+    Compose(B, ("test", "testb")),
+):
+    ...
+
+
+c = C()
+print(c.testa + c.testb)     # > 123456
+print(c._a.test + c._b.test) # > 123456
+"""
+
 from operator import attrgetter
 from typing import Union, Tuple, Any, Dict
 
@@ -50,7 +82,7 @@ def Compose(
                 raise TypeError(f"Passed instance doesn't implement {type_}")
             if any(not hasattr(obj, attr) for attr, _ in fields_):
                 raise TypeError(
-                    "Can't initialise class due to missing fields required by composition "
+                    "Can't initialize class due to missing fields required by composition "
                     f"(composite: {self.__class__}, composee: {type_}).\n"
                     f"Missing fields: {[attr for attr, _ in fields_ if not hasattr(obj, attr)]}"
                 )

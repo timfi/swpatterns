@@ -41,10 +41,11 @@ def implements(
 
     def inner(cls: type) -> type:
         _perform_check(cls, interface, skip_types, verbose=True)
+        original = getattr(cls, INTERFACE_LIST_NAME, tuple())
         setattr(
             cls,
             INTERFACE_LIST_NAME,
-            (interface,) + getattr(cls, INTERFACE_LIST_NAME, tuple()),
+            ((interface,) + original if interface not in original else original),
         )
         return cls
 
